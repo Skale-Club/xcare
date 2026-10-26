@@ -5,6 +5,7 @@
 
 mod apps;
 mod cleaner;
+mod portable;
 mod power;
 mod startup;
 mod updater;
@@ -12,7 +13,7 @@ mod win;
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::{fs, path::PathBuf, sync::Mutex};
+use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
 use wmi::{COMLibrary, Variant, WMIConnection};
 
@@ -39,21 +40,14 @@ struct AppState {
     update: Mutex<Option<updater::Update>>,
 }
 
-fn exe_dir() -> PathBuf {
-    std::env::current_exe()
-        .ok()
-        .and_then(|exe| exe.parent().map(PathBuf::from))
-        .unwrap_or_else(|| PathBuf::from("."))
-}
-
 fn save_settings(settings: &Settings) {
     if let Ok(text) = serde_json::to_string_pretty(settings) {
-        let _ = fs::write(exe_dir().join("xcare.json"), text);
+        let _ = fs::write(portable::data_dir().join("xcare.json"), text);
     }
 }
 
 fn load_settings() -> Settings {
-    match fs::read_to_string(exe_dir().join("xcare.json")) {
+    match fs::read_to_string(portable::data_dir().join("xcare.json")) {
         // Some editors save UTF-8 with a BOM, which serde_json rejects.
         Ok(text) => serde_json::from_str(text.trim_start_matches('\u{feff}')).unwrap_or_default(),
         Err(_) => {
@@ -289,6 +283,8 @@ fn check_disks(app: AppHandle) {
 
 fn main() {
     updater::finish_previous();
+    portable::migrate(&["xcare.json"]);
+    portable::sync_appinfo();
     tauri::Builder::default()
         .manage(AppState {
             settings: Mutex::new(load_settings()),

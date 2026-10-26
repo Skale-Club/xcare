@@ -14,7 +14,8 @@ Get the latest `Xcare.exe` from **[Releases](https://github.com/skaleclub/xcare/
 
 Double-click `Xcare.exe`. It needs WebView2, which comes with Windows 11.
 The language selector is at the bottom left (English, Português, Español) and
-is saved in `xcare.json` next to the exe.
+is saved in `Data\xcare.json` next to the exe. The folder follows the PortableApps layout: the exe, `App\AppInfo\` (name,
+version, icon) and `Data\` for everything the app saves.
 
 It runs as a normal user. Some Windows folders and programs set up for all
 users need administrator rights: use **Restart as administrator** inside the
