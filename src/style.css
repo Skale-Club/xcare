@@ -1,5 +1,6 @@
 /* Skale Club palette: navy surfaces, CTA blue #5173D6, soft blue #8FA9EE. */
 :root {
+  color-scheme: dark;
   --bg: #0b111c;
   --side: #0c1424;
   --card: #111a2c;
@@ -34,7 +35,7 @@ button, select, input { font: inherit; color: inherit; }
 /* ---------- sidebar ---------- */
 
 #side {
-  width: 228px;
+  width: 248px;
   flex: none;
   display: flex;
   flex-direction: column;
@@ -190,7 +191,7 @@ header h1 { margin: 0; font-size: 22px; font-weight: 600; }
 .cat .count { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; min-width: 90px; text-align: right; }
 .cat .size { font-weight: 600; font-variant-numeric: tabular-nums; min-width: 86px; text-align: right; }
 .cat.locked { opacity: 0.6; }
-.tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 6px; background: var(--raised); color: var(--muted); margin-left: 6px; vertical-align: 1px; }
+.tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 6px; background: rgba(81, 115, 214, 0.2); color: var(--brand-soft); margin-left: 6px; font-weight: 600; vertical-align: 1px; }
 
 input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer; margin: 0; }
 input[type="checkbox"]:disabled { cursor: default; }
