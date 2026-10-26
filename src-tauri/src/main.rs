@@ -233,6 +233,12 @@ async fn install_update(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Opens the Skale Club website in the default browser.
+#[tauri::command]
+fn open_site() {
+    win::shell("open", "https://skale.club", "");
+}
+
 /// Relaunches Xcare with a UAC prompt; this copy closes if the user accepts.
 #[tauri::command]
 fn restart_as_admin(app: AppHandle) -> Result<(), String> {
@@ -305,6 +311,7 @@ fn main() {
             add_ultimate_plan,
             run_tool,
             restart_as_admin,
+            open_site,
             check_update,
             install_update
         ])

@@ -522,6 +522,8 @@ pageEl.addEventListener('click', async (e) => {
   }
 });
 
+$('skale').addEventListener('click', () => invoke('open_site'));
+
 $('lang').addEventListener('change', (e) => {
   setLanguage(e.target.value);
   invoke('set_language', { language });

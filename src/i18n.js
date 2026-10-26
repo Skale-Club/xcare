@@ -6,7 +6,7 @@ const I18N = {
   en: {
     locale: 'en-US',
     ui: {
-      tagline: 'Clean & optimize',
+      tagline: 'Clean & optimize', madeBy: 'Made by',
       overview: 'Overview', cleaner: 'Cleaner', startup: 'Startup', apps: 'Apps', optimize: 'Optimize',
       admin: 'Administrator', notAdmin: 'Standard user',
       checking: 'Checking your PC…', scanNow: 'Scan again', lastScan: 'Checked at {time}',
@@ -90,7 +90,7 @@ const I18N = {
   pt: {
     locale: 'pt-BR',
     ui: {
-      tagline: 'Limpe e otimize',
+      tagline: 'Limpe e otimize', madeBy: 'Feito pela',
       overview: 'Visão geral', cleaner: 'Limpeza', startup: 'Inicialização', apps: 'Programas', optimize: 'Otimizar',
       admin: 'Administrador', notAdmin: 'Usuário padrão',
       checking: 'Verificando o PC…', scanNow: 'Verificar de novo', lastScan: 'Verificado às {time}',
@@ -174,7 +174,7 @@ const I18N = {
   es: {
     locale: 'es-ES',
     ui: {
-      tagline: 'Limpia y optimiza',
+      tagline: 'Limpia y optimiza', madeBy: 'Hecho por',
       overview: 'Resumen', cleaner: 'Limpieza', startup: 'Inicio', apps: 'Programas', optimize: 'Optimizar',
       admin: 'Administrador', notAdmin: 'Usuario estándar',
       checking: 'Revisando tu PC…', scanNow: 'Revisar de nuevo', lastScan: 'Revisado a las {time}',

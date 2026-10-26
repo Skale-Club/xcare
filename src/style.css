@@ -279,3 +279,15 @@ select.sel { background: var(--raised); border: 1px solid var(--line); border-ra
   z-index: 20;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Skale Club ---------- */
+
+.skale { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 20px; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; text-align: left; }
+.skale:hover { background: rgba(143, 169, 238, 0.06); }
+.skale img { width: 30px; height: 30px; flex: none; }
+.skale span { display: flex; flex-direction: column; line-height: 1.2; font-weight: 600; font-size: 13px; }
+.skale small { color: var(--muted); font-weight: 400; font-size: 11px; }
+/* Design review: stronger warning and problem markers. */
+.issue.warn .dot { background: rgba(245, 196, 81, 0.22); }
+.issue.bad .dot { background: rgba(255, 84, 104, 0.22); }
+.issue .dot svg { stroke-width: 2.6; }

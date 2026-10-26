@@ -4,6 +4,8 @@ Portable PC cleaner and optimizer for Windows, in the spirit of CCleaner and
 Advanced SystemCare, but only with what actually helps. One small exe, no
 installer. 🇧🇷 [Português](#português) · 🇪🇸 [Español](#español)
 
+Made by **[Skale Club](https://skale.club)**.
+
 ## Download
 
 Get the latest `Xcare.exe` from **[Releases](https://github.com/skaleclub/xcare/releases/latest)**. It keeps itself up to date: when a new version is out, the app offers it (at the top of the window) and swaps itself in place, keeping your settings. Every update is signed and checked before it is used.
@@ -126,3 +128,7 @@ SystemCare, pero solo con lo que funciona de verdad.
   usa **Reabrir como administrador**.
 - Fuera a propósito: limpiadores de registro, "aceleradores de RAM" y
   "aceleradores de internet", que no hacen Windows más rápido.
+
+---
+
+© 2026 [Skale Club](https://skale.club)
