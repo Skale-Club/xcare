@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
 
-const REPO: &str = "skaleclub/xcare";
+const REPO: &str = "Skale-Club/xcare";
 const PUBLIC_KEY: &str = include_str!("../updater.pub");
 const MAX_DOWNLOAD: u64 = 200 * 1024 * 1024;
 const USER_AGENT: &str = "skale-x-updater";

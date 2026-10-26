@@ -8,7 +8,7 @@ Made by **[Skale Club](https://skale.club)**.
 
 ## Download
 
-Get the latest `Xcare.exe` from **[Releases](https://github.com/skaleclub/xcare/releases/latest)**. It keeps itself up to date: when a new version is out, the app offers it (at the top of the window) and swaps itself in place, keeping your settings. Every update is signed and checked before it is used.
+Get the latest `Xcare.exe` from **[Releases](https://github.com/Skale-Club/xcare/releases/latest)**. It keeps itself up to date: when a new version is out, the app offers it (at the top of the window) and swaps itself in place, keeping your settings. Every update is signed and checked before it is used.
 
 ## Run it
 
@@ -91,7 +91,7 @@ The private key lives outside the repository, in `%USERPROFILE%\.tauri\skale-x-u
 
 ## Português
 
-**Download:** [Releases](https://github.com/skaleclub/xcare/releases/latest). O app avisa quando há versão nova e se atualiza sozinho, mantendo as configurações.
+**Download:** [Releases](https://github.com/Skale-Club/xcare/releases/latest). O app avisa quando há versão nova e se atualiza sozinho, mantendo as configurações.
 
 O Xcare é um limpador e otimizador portátil no estilo CCleaner e Advanced
 SystemCare, mas só com o que funciona de verdade.
@@ -112,7 +112,7 @@ SystemCare, mas só com o que funciona de verdade.
 
 ## Español
 
-**Descarga:** [Releases](https://github.com/skaleclub/xcare/releases/latest). La app avisa cuando hay una versión nueva y se actualiza sola, conservando la configuración.
+**Descarga:** [Releases](https://github.com/Skale-Club/xcare/releases/latest). La app avisa cuando hay una versión nueva y se actualiza sola, conservando la configuración.
 
 Xcare es un limpiador y optimizador portátil al estilo de CCleaner y Advanced
 SystemCare, pero solo con lo que funciona de verdad.
