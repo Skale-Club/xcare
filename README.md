@@ -1,7 +1,7 @@
 # Xcare
 
-> **Xcare is now part of [Xpecs](https://github.com/Skale-Club/xpecs).** Its pages (overview,
-> cleaner, startup, apps, optimize and Force Delete) live on in Xpecs, next to disk space, drivers
+> **Xcare is now part of [Xpace](https://github.com/Skale-Club/xpace).** Its pages (overview,
+> cleaner, startup, apps, optimize and Force Delete) live on in Xpace, next to disk space, drivers
 > and hardware. This repository is kept for reference and gets no new features.
 
 Portable PC cleaner and optimizer for Windows, in the spirit of CCleaner and Advanced SystemCare,
@@ -217,7 +217,7 @@ Portuguese and Spanish UI text. Each app has its own executable and portable Dat
 
 | App | Purpose |
 | --- | --- |
-| [Xpecs](https://github.com/Skale-Club/xpecs) | Care for the PC (cleaning, disk space, drivers, startup, apps) and inspect hardware, live sensors and benchmarks |
+| [Xpace](https://github.com/Skale-Club/xpace) | Care for the PC (disk space, cleaning, drivers, startup, apps) and inspect hardware, live sensors and benchmarks |
 | [Xink](https://github.com/Skale-Club/xink) | Draw over the screen during presentations or recordings |
 | [Xnote](https://github.com/Skale-Club/xnote) | Transcribe meetings and turn notes into summaries and tasks |
 | [Xvert](https://github.com/Skale-Club/xvert) | Convert videos, music and pictures between formats |
