@@ -3,7 +3,8 @@
 //!
 //! Safety rules:
 //! - Only folders that hold caches or leftovers that Windows and apps rebuild.
-//! - Never follows junctions or symbolic links (reparse points).
+//! - Never follows junctions or symbolic links (reparse points), and never
+//!   uses one as a cleaning root.
 //! - Refuses relative paths, drive roots and the big parent folders
 //!   (profile, Windows, Program Files…) as cleaning roots.
 //! - A file is only deleted if it sits inside its category's own folders.
@@ -70,6 +71,15 @@ fn safe(root: &Root) -> bool {
         .iter()
         .filter_map(std::env::var_os)
         .any(|v| norm(Path::new(&v)) == target)
+}
+
+/// A junction or symbolic link could point anywhere, so it is never a root.
+fn is_link(path: &Path) -> bool {
+    fs::symlink_metadata(path).map_or(false, |m| m.file_attributes() & REPARSE_POINT != 0)
+}
+
+fn usable(root: &Root) -> bool {
+    safe(root) && !is_link(&root.dir)
 }
 
 /// The user's temp folder, only if it really is a temp folder: a TEMP
@@ -205,7 +215,7 @@ fn walk(dir: &Path, root: &Root, cutoff: Option<SystemTime>, out: &mut Files) {
 
 fn collect(roots: &[Root], cutoff: Option<SystemTime>) -> Files {
     let mut files = Vec::new();
-    for root in roots.iter().filter(|r| safe(r)) {
+    for root in roots.iter().filter(|r| usable(r)) {
         walk(&root.dir, root, cutoff, &mut files);
     }
     files
@@ -293,11 +303,24 @@ fn prune(dir: &Path, cutoff: Option<SystemTime>) {
     }
 }
 
-/// Deletes `files`, but only those inside one of `roots`. `tick` gets the
-/// size of each file handled, deleted or not.
+/// Deletes `files`, but only those inside one of `roots`, both by path and by
+/// where the folder really is on disk: a folder swapped for a junction after
+/// the scan does not lead the delete elsewhere. `tick` gets the size of each
+/// file handled, deleted or not.
 fn delete(roots: &[Root], files: &Files, cutoff: Option<SystemTime>, out: &mut Cleaned, tick: &mut dyn FnMut(u64)) {
+    let homes: Vec<(&Path, PathBuf)> = roots
+        .iter()
+        .filter(|r| usable(r))
+        .filter_map(|r| fs::canonicalize(&r.dir).ok().map(|real| (r.dir.as_path(), real)))
+        .collect();
+    let mut real_dirs: HashMap<PathBuf, Option<PathBuf>> = HashMap::new();
     for (path, size) in files {
-        let inside = roots.iter().any(|r| safe(r) && path.starts_with(&r.dir));
+        let real_dir = path
+            .parent()
+            .and_then(|dir| real_dirs.entry(dir.to_path_buf()).or_insert_with(|| fs::canonicalize(dir).ok()).clone());
+        let inside = real_dir.map_or(false, |real_dir| {
+            homes.iter().any(|(dir, real)| path.starts_with(dir) && real_dir.starts_with(real))
+        });
         if inside && remove(path) {
             out.freed += size;
             out.deleted += 1;
@@ -306,7 +329,7 @@ fn delete(roots: &[Root], files: &Files, cutoff: Option<SystemTime>, out: &mut C
         }
         tick(*size);
     }
-    for root in roots.iter().filter(|r| r.recursive && safe(r)) {
+    for root in roots.iter().filter(|r| r.recursive && usable(r)) {
         prune(&root.dir, cutoff);
     }
 }
@@ -422,6 +445,64 @@ mod tests {
         let mut out = Cleaned::default();
         delete(&roots, &vec![(PathBuf::from(r"relative\folder\x.tmp"), 1)], None, &mut out, &mut |_| {});
         assert_eq!((out.deleted, out.skipped), (0, 1));
+    }
+
+    fn junction(link: &Path, target: &Path) {
+        let ok = std::process::Command::new("cmd")
+            .args(["/C", "mklink", "/J"])
+            .arg(link)
+            .arg(target)
+            .output()
+            .unwrap()
+            .status
+            .success();
+        assert!(ok, "could not create a junction for the test");
+    }
+
+    #[test]
+    fn junction_as_root_is_neither_scanned_nor_cleaned() {
+        let base = std::env::temp_dir().join(format!("xcare-rootlink-{}", std::process::id()));
+        let elsewhere = base.join("elsewhere");
+        fs::create_dir_all(&elsewhere).unwrap();
+        fs::write(elsewhere.join("keep.txt"), b"k").unwrap();
+        let link = base.join("cache");
+        junction(&link, &elsewhere);
+
+        let roots = vec![tree(link.clone())];
+        assert!(collect(&roots, None).is_empty(), "scanned through a junction root");
+        let mut out = Cleaned::default();
+        delete(&roots, &vec![(link.join("keep.txt"), 1)], None, &mut out, &mut |_| {});
+        assert_eq!((out.deleted, out.skipped), (0, 1));
+        assert!(elsewhere.join("keep.txt").exists());
+
+        fs::remove_dir(&link).unwrap();
+        fs::remove_dir_all(&base).unwrap();
+    }
+
+    #[test]
+    fn folder_swapped_for_a_junction_after_the_scan_is_not_cleaned() {
+        let base = std::env::temp_dir().join(format!("xcare-swap-{}", std::process::id()));
+        let root = base.join("cache");
+        let elsewhere = base.join("elsewhere");
+        fs::create_dir_all(root.join("sub")).unwrap();
+        fs::create_dir_all(&elsewhere).unwrap();
+        fs::write(root.join("sub").join("a.tmp"), b"a").unwrap();
+        let roots = vec![tree(root.clone())];
+        let files = collect(&roots, None);
+        assert_eq!(files.len(), 1);
+
+        // Between scan and clean, "sub" becomes a junction to a folder with a same-named file.
+        fs::remove_dir_all(root.join("sub")).unwrap();
+        fs::write(elsewhere.join("a.tmp"), b"a").unwrap();
+        junction(&root.join("sub"), &elsewhere);
+
+        let mut out = Cleaned::default();
+        delete(&roots, &files, None, &mut out, &mut |_| {});
+        assert_eq!((out.deleted, out.skipped), (0, 1));
+        assert!(elsewhere.join("a.tmp").exists(), "deleted through a junction");
+
+        fs::remove_dir(root.join("sub")).unwrap();
+        fs::remove_dir_all(&base).unwrap();
     }
 
     #[test]
