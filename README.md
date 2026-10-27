@@ -1,134 +1,159 @@
 # Xcare
 
-Portable PC cleaner and optimizer for Windows, in the spirit of CCleaner and
-Advanced SystemCare, but only with what actually helps. One small exe, no
-installer. 🇧🇷 [Português](#português) · 🇪🇸 [Español](#español)
+Portable PC cleaner and optimizer for Windows, in the spirit of CCleaner and Advanced SystemCare,
+with scan-first cleaning and access to Windows maintenance tools. No app installer is required. 🇧🇷
+[Português](#português) · 🇪🇸 [Español](#español)
 
 Made by **[Skale Club](https://skale.club)**.
 
-## Download
+## Availability
 
-Get the latest `Xcare.exe` from **[Releases](https://github.com/Skale-Club/xcare/releases/latest)**. It keeps itself up to date: when a new version is out, the app offers it (at the top of the window) and swaps itself in place, keeping your settings. Every update is signed and checked before it is used.
+**Status checked October 26, 2026:** version 0.1.0 is in source control; no GitHub Release or
+downloadable executable has been published. Use the [build instructions](docs/DEVELOPMENT.md) until
+a release is available. Future binaries belong in
+[Releases](https://github.com/Skale-Club/xcare/releases).
+
+The app can offer signed updates when a newer release contains both an executable and its signature.
+Updates require internet access and are installed when you select the update action; your `Data`
+folder is retained.
 
 ## Run it
 
-Double-click `Xcare.exe`. It needs WebView2, which comes with Windows 11.
-The language selector is at the bottom left (English, Português, Español) and
-is saved in `Data\xcare.json` next to the exe. The folder follows the PortableApps layout: the exe, `App\AppInfo\` (name,
-version, icon) and `Data\` for everything the app saves.
+Double-click `Xcare.exe`. It requires Microsoft Edge WebView2 Runtime. The language selector is at
+the bottom left (English, Português, Español) and is saved in `Data\xcare.json` next to the exe.
+Keep the executable in a writable folder. The app creates `Data` beside it. PortableApps-style
+metadata is optional; the build and release workflow do not create a PortableApps package.
 
-It runs as a normal user. Some Windows folders and programs set up for all
-users need administrator rights: use **Restart as administrator** inside the
-app when you want those too (Windows asks for permission).
+It runs as a normal user. Some Windows folders and programs set up for all users need administrator
+rights: use **Restart as administrator** inside the app when you want those too (Windows asks for
+permission).
 
 ## Pages
 
 | Page | What it does |
 |---|---|
-| Overview | Checks the PC on open and gives a 0–100 score: junk files, startup programs, free space, time since restart, power plan, drive health, memory. Each problem has a button to fix it. |
+| Overview | Checks the PC on open and gives a 0–100 score: junk files, startup programs, free space, time since restart, power plan, drive health, memory. Action buttons are shown where a supported action exists. |
 | Cleaner | Scans and shows the size of each category, then deletes only what you ticked, after a confirmation. |
 | Startup | Turns programs that start with Windows on and off. |
-| Apps | Every installed program with size and install date; opens the program's own uninstaller. |
+| Apps | Programs found in supported uninstall registry entries, with size/date when provided; opens the program's own uninstaller. |
 | Optimize | Power plan (including adding Ultimate Performance) and shortcuts to Windows' own tools: repair system files (DISM + SFC), restore point, optimize drives, visual effects, Game Mode, Storage Sense, Windows Update, Task Manager, Disk Cleanup. |
 
-## How the cleaner stays safe
+## Cleaning behavior
 
-- Only caches and leftovers that Windows and apps rebuild: temp folders,
-  thumbnail cache, error reports, Windows Update downloads, Delivery
-  Optimization, memory dumps and browser caches (Chrome, Edge, Brave, Opera,
-  Firefox). **Logins, history, cookies and passwords are never touched.**
-- Temp folders keep anything from the last 24 hours, so running installers
-  keep their files.
-- It deletes exactly the files the scan listed, only inside each category's
-  own folders, never following links or junctions. Files in use are skipped.
-- Shader caches and the Recycle Bin are off by default (games rebuild shaders
-  with a brief stutter; the Recycle Bin is permanent).
+- Categories cover caches, temporary files and diagnostic leftovers: temp folders,   thumbnail
+  cache, error reports, Windows Update downloads, Delivery   Optimization, memory dumps and browser
+  caches (Chrome, Edge, Brave, Opera,   Firefox). Browser categories target cache directories, not
+  password, cookie or history databases.
+- Temp folders keep anything from the last 24 hours, to reduce interference with current work.
+- File-based categories delete the scanned files within their allowed roots,   skipping
+  links/junctions and files they cannot delete. Close relevant apps   before scanning so caches are
+  less likely to change or stay locked.
+- Shader caches and the Recycle Bin are off by default. Rebuilding shaders   may delay a game's next
+  launch. The Recycle Bin action empties the bin through   Windows at execution time, including
+  items added after the scan; it is not a   per-file scan snapshot. Deletion is permanent.
+- Clearing browser caches can remove offline cached website resources. The next   visit may need to
+  download them again.
+
+## What the health score means
+
+The 0–100 score is a heuristic based on the checks in the overview. It is not a benchmark, antivirus
+result or guarantee that hardware is healthy. Some findings need manual review rather than a
+one-click fix. Power plans and cleanup can change system behavior; the app does not promise a
+particular speed increase.
 
 ## Startup switch
 
-Turning a program off writes the same "StartupApproved" flag the Task Manager
-uses. The program's own entry stays, so you can turn it back on anytime, here
-or in Task Manager.
+Turning a program off writes the same "StartupApproved" flag the Task Manager uses. The program's
+own entry stays, so you can turn it back on anytime, here or in Task Manager. The list covers
+supported Run registry entries and Startup folders; it does not enumerate every service or scheduled
+task.
 
 ## Left out on purpose
 
-Registry cleaners, "RAM boosters" and "internet boosters". They don't make
-Windows faster: registry cleaners are a common cause of broken programs, and
-emptying RAM forces Windows to reload what it had cached.
+Registry cleaning, forced RAM clearing and automatic network tuning are not implemented. The
+Optimize page changes supported power settings or opens Windows tools; availability and elevation
+requirements depend on the system.
 
-## Build from source
+## Development
 
-This is a Tauri v2 app (Rust + plain HTML/JS, no bundler).
-Needs Rust, Node.js and the Visual C++ Build Tools.
-
-```bash
-npm install
-npm run build    # src-tauri/target/release/xcare.exe
-```
-
-```bash
-cd src-tauri
-cargo test --release    # cleaner safety, startup flag, powercfg parsing
-```
-
-- `src-tauri/src/cleaner.rs`: categories, scan and safe delete (with tests).
-- `src-tauri/src/startup.rs`, `apps.rs`, `power.rs`: startup programs, installed apps, power plans.
-- `src-tauri/src/win.rs`: Recycle Bin, ShellExecute, disk space, memory.
-- `src/app.js`, `src/style.css`: the window; `src/i18n.js`: English, Portuguese, Spanish.
-- `make-icon.ps1`: draws the app icon.
-
-## Releasing a new version
-
-```powershell
-./scripts/release.ps1 0.2.0
-```
-
-It sets the version in `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` and `package.json`, commits, tags `v0.2.0` and pushes. GitHub Actions then builds the exe, signs it with the update key (the `TAURI_SIGNING_PRIVATE_KEY` secret) and publishes the release; installed copies offer it on their next start.
-
-The private key lives outside the repository, in `%USERPROFILE%\.tauri\skale-x-updater.key`. Keep a backup: without it no new update can be signed.
+Tauri 2, Rust and plain HTML/CSS/JavaScript. See the [development and release
+guide](docs/DEVELOPMENT.md) for prerequisites, clone, build, tests and signed-release instructions.
+A push to `main` alone does not publish an executable.
 
 ---
 
 ## Português
 
-**Download:** [Releases](https://github.com/Skale-Club/xcare/releases/latest). O app avisa quando há versão nova e se atualiza sozinho, mantendo as configurações.
+**Disponibilidade:** em 26/10/2026, ainda não há release nem executável publicado. Consulte
+[Releases](https://github.com/Skale-Club/xcare/releases) ou as [instruções de
+compilação](docs/DEVELOPMENT.md). As atualizações dependem de uma release assinada e da ação do
+usuário.
 
-O Xcare é um limpador e otimizador portátil no estilo CCleaner e Advanced
-SystemCare, mas só com o que funciona de verdade.
+O Xcare é um limpador e otimizador portátil no estilo CCleaner e Advanced SystemCare, com análise
+antes da limpeza e acesso às ferramentas do Windows.
 
-- **Visão geral:** nota de 0 a 100 e o que corrigir.
-- **Limpeza:** analisa, mostra o tamanho e só apaga o que você marcou, depois
-  de confirmar. Logins, histórico, cookies e senhas dos navegadores nunca são
-  tocados. Temporários das últimas 24 horas são mantidos.
-- **Inicialização:** liga e desliga programas que iniciam com o Windows, com a
-  mesma chave do Gerenciador de Tarefas. Dá para desfazer.
-- **Programas:** lista com tamanho e abre o desinstalador de cada um.
-- **Otimizar:** plano de energia e atalhos para as ferramentas do Windows
-  (reparar arquivos do sistema, ponto de restauração, otimizar unidades e mais).
-- Para limpar pastas do Windows e mexer em programas de todos os usuários, use
-  **Reabrir como administrador**.
-- Fora de propósito: limpador de registro, "turbinador de RAM" e "acelerador de
-  internet", que não deixam o Windows mais rápido.
+- **Visão geral:** nota heurística de 0 a 100; não é benchmark, antivírus ou garantia de saúde do
+  hardware.
+- **Limpeza:** analisa, mostra o tamanho e só apaga o que você marcou, depois   de confirmar. As
+  categorias de navegador visam pastas de cache, não os   bancos de senhas, cookies ou histórico. O
+  cache offline de sites pode ser   removido. Temporários das últimas 24 horas são mantidos.
+- **Inicialização:** liga e desliga programas que iniciam com o Windows, com a   mesma chave do
+  Gerenciador de Tarefas. Dá para desfazer.
+- **Programas:** lista entradas de desinstalação reconhecidas no registro; tamanho e data dependem
+  do instalador. Não é um inventário de todos os apps portáteis ou da Microsoft Store.
+- **Lixeira:** a opção é desmarcada por padrão e esvazia a lixeira no momento da execução, inclusive
+  itens adicionados após a análise.
+- **Otimizar:** plano de energia e atalhos para as ferramentas do Windows   (reparar arquivos do
+  sistema, ponto de restauração, otimizar unidades e mais).
+- Para limpar pastas do Windows e mexer em programas de todos os usuários, use   **Reabrir como
+  administrador**.
+- Não inclui limpeza de registro, esvaziamento forçado de RAM ou ajuste   automático de rede. Não
+  promete um aumento específico de desempenho.
 
 ## Español
 
-**Descarga:** [Releases](https://github.com/Skale-Club/xcare/releases/latest). La app avisa cuando hay una versión nueva y se actualiza sola, conservando la configuración.
+**Disponibilidad:** al 26/10/2026, aún no hay release ni ejecutable publicado. Consulte
+[Releases](https://github.com/Skale-Club/xcare/releases) o las [instrucciones de
+compilación](docs/DEVELOPMENT.md). Las actualizaciones requieren una release firmada y la acción del
+usuario.
 
-Xcare es un limpiador y optimizador portátil al estilo de CCleaner y Advanced
-SystemCare, pero solo con lo que funciona de verdad.
+Xcare es un limpiador y optimizador portátil al estilo de CCleaner y Advanced SystemCare, con
+análisis antes de limpiar y acceso a las herramientas de Windows.
 
-- **Resumen:** nota de 0 a 100 y qué corregir.
-- **Limpieza:** analiza, muestra el tamaño y solo borra lo que marques, tras
-  confirmar. Las sesiones, el historial, las cookies y las contraseñas nunca se
-  tocan. Se conservan los temporales de las últimas 24 horas.
-- **Inicio:** activa y desactiva programas que se inician con Windows, con el
-  mismo interruptor del Administrador de tareas. Se puede deshacer.
-- **Programas:** lista con tamaño y abre el desinstalador de cada uno.
+- **Resumen:** nota orientativa de 0 a 100; no es un benchmark, antivirus ni garantía de salud del
+  hardware.
+- **Limpieza:** analiza, muestra el tamaño y solo borra lo que marques, tras   confirmar. Las
+  categorías de navegador apuntan a carpetas de caché, no a   bases de contraseñas, cookies o
+  historial. Puede borrarse la caché offline   de sitios. Se conservan los temporales de las últimas
+  24 horas.
+- **Inicio:** activa y desactiva programas que se inician con Windows, con el   mismo interruptor
+  del Administrador de tareas. Se puede deshacer.
+- **Programas:** lista entradas de desinstalación reconocidas en el registro; tamaño y fecha
+  dependen del instalador. No es un inventario de todas las apps portátiles o de Microsoft Store.
+- **Papelera:** desmarcada por defecto; se vacía en el momento de ejecutar, incluidos elementos
+  añadidos después del análisis.
 - **Optimizar:** plan de energía y accesos a las herramientas de Windows.
-- Para limpiar carpetas de Windows y cambiar programas de todos los usuarios,
-  usa **Reabrir como administrador**.
-- Fuera a propósito: limpiadores de registro, "aceleradores de RAM" y
-  "aceleradores de internet", que no hacen Windows más rápido.
+- Para limpiar carpetas de Windows y cambiar programas de todos los usuarios,   usa **Reabrir como
+  administrador**.
+- No incluye limpieza del registro, vaciado forzado de RAM ni ajuste   automático de red. No promete
+  un aumento concreto del rendimiento.
+
+## Skale Club apps
+
+These Windows apps belong to the [Skale-Club organization](https://github.com/Skale-Club). They
+share a dark navy interface, blue accents and English, Portuguese and Spanish UI text. Each app has
+its own executable and data folder.
+
+| App | Purpose |
+|---|---|
+| [Xink](https://github.com/Skale-Club/xink) | Draw over the screen during presentations or recordings |
+| [Xpecs](https://github.com/Skale-Club/xpecs) | Inspect hardware, live sensors and benchmark results |
+| [Xcare](https://github.com/Skale-Club/xcare) | Review PC maintenance, clean selected files and manage startup programs |
+| [Xnote](https://github.com/Skale-Club/xnote) | Transcribe meeting audio and turn notes into summaries and tasks |
+
+Xnote currently requires repository access. Report problems through the relevant repository's Issues
+tab, including the app version, Windows version and steps to reproduce. Remove personal information
+from reports and transcripts before sharing.
 
 ---
 

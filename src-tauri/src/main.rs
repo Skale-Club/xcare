@@ -17,7 +17,7 @@ use std::{fs, sync::Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
 use wmi::{COMLibrary, Variant, WMIConnection};
 
-/// Settings kept in xcare.json next to the executable.
+/// Settings kept in Data/xcare.json beside the executable.
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 struct Settings {
