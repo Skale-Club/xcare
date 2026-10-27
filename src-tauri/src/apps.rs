@@ -15,13 +15,16 @@ const SOURCES: [(bool, &str); 3] = [
 
 #[derive(Serialize)]
 pub struct App {
-    id: String,
+    pub id: String,
     name: String,
     publisher: String,
     version: String,
     /// Bytes, as estimated by the installer (0 = unknown).
     size: u64,
     date: String,
+    /// Where its icon is ("DisplayIcon"), sent separately by `icons`.
+    #[serde(skip)]
+    pub icon: String,
 }
 
 fn hive(machine: bool) -> RegKey {
@@ -63,6 +66,7 @@ pub fn list() -> Vec<App> {
                 version,
                 size: key.get_value::<u32, _>("EstimatedSize").unwrap_or(0) as u64 * 1024,
                 date,
+                icon: text("DisplayIcon"),
             });
         }
     }

@@ -6,6 +6,9 @@
 mod apps;
 mod cleaner;
 mod force_delete;
+mod icons;
+mod mcp;
+mod mcp_tools;
 mod portable;
 mod power;
 mod startup;
@@ -98,21 +101,25 @@ async fn get_status(app: AppHandle) -> Status {
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
         let unhealthy_disks = state.unhealthy_disks.lock().unwrap().clone().unwrap_or_default();
-        let drive = std::env::var("SystemDrive").unwrap_or_else(|_| "C:".into());
-        let (free, total) = win::disk_space(&format!("{drive}\\")).unwrap_or((0, 0));
-        Status {
-            admin: win::is_admin(),
-            drive,
-            free,
-            total,
-            uptime: win::uptime_seconds(),
-            memory_load: win::memory_load(),
-            recycle_bin: win::recycle_bin().0,
-            unhealthy_disks,
-        }
+        read_status(unhealthy_disks)
     })
     .await
     .unwrap_or_default()
+}
+
+fn read_status(unhealthy_disks: Vec<String>) -> Status {
+    let drive = std::env::var("SystemDrive").unwrap_or_else(|_| "C:".into());
+    let (free, total) = win::disk_space(&format!("{drive}\\")).unwrap_or((0, 0));
+    Status {
+        admin: win::is_admin(),
+        drive,
+        free,
+        total,
+        uptime: win::uptime_seconds(),
+        memory_load: win::memory_load(),
+        recycle_bin: win::recycle_bin().0,
+        unhealthy_disks,
+    }
 }
 
 #[tauri::command]
@@ -157,6 +164,26 @@ fn set_startup(id: String, enabled: bool) -> Result<(), String> {
 #[tauri::command]
 async fn list_apps() -> Vec<apps::App> {
     tauri::async_runtime::spawn_blocking(apps::list).await.unwrap_or_default()
+}
+
+/// Real icons for a list ("startup", "apps" or "cleaner"), by item id. Sent
+/// after the list itself, so the list shows without waiting for them.
+#[tauri::command]
+async fn list_icons(kind: String) -> HashMap<String, String> {
+    tauri::async_runtime::spawn_blocking(move || match kind.as_str() {
+        "startup" => startup::list().into_iter().filter_map(|i| Some((i.id, icons::command(&i.command)?))).collect(),
+        "apps" => apps::list()
+            .into_iter()
+            .filter_map(|a| {
+                let (path, index) = icons::location(&a.icon);
+                Some((a.id, icons::file(&path, index)?))
+            })
+            .collect(),
+        "cleaner" => icons::categories().into_iter().map(|(id, url)| (id.to_string(), url)).collect(),
+        _ => HashMap::new(),
+    })
+    .await
+    .unwrap_or_default()
 }
 
 #[tauri::command]
@@ -306,6 +333,9 @@ fn main() {
     updater::finish_previous();
     portable::migrate(&["xcare.json"]);
     portable::sync_appinfo();
+    if mcp::requested() {
+        return mcp_tools::serve();
+    }
     tauri::Builder::default()
         .manage(AppState {
             force_delete: force_delete::Service::default(),
@@ -323,6 +353,7 @@ fn main() {
             list_startup,
             set_startup,
             list_apps,
+            list_icons,
             uninstall_app,
             list_power_plans,
             set_power_plan,

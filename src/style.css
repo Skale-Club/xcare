@@ -48,7 +48,7 @@
 
 /* ---------- cleaner ---------- */
 
-.cat { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 14px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+.cat { display: grid; grid-template-columns: 18px 28px 1fr auto auto; gap: 14px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
 .cat:first-of-type { border-top: 0; }
 .cat .desc { color: var(--muted); font-size: 12.5px; }
 .cat .count { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; min-width: 90px; text-align: right; }
@@ -71,6 +71,20 @@
 .item .cmd { color: var(--faint); font: 12px/1.4 var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item .meta { color: var(--muted); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .item > div { min-width: 0; }
+.item.with-icon { grid-template-columns: 28px 1fr auto auto; }
+
+/* a program's or category's own icon; its first letter when it has none */
+.app-icon { width: 28px; height: 28px; flex: none; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45)); }
+span.app-icon {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(81, 115, 214, 0.32), rgba(81, 115, 214, 0.1));
+  box-shadow: inset 0 0 0 1px rgba(143, 169, 238, 0.2);
+  color: var(--brand-soft);
+  font: 700 13px/1 var(--font-display);
+  filter: none;
+}
 
 .search, .toolbar .field { flex: 1; min-width: 200px; }
 .fd-path-input .field { font-family: var(--font-mono); font-size: 13px; }

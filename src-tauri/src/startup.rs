@@ -14,9 +14,9 @@ const APPROVED: &str = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Star
 
 #[derive(Serialize)]
 pub struct Item {
-    id: String,
+    pub id: String,
     name: String,
-    command: String,
+    pub command: String,
     /// "user", "machine", "machine32", "folder" or "folderAll".
     location: &'static str,
     enabled: bool,

@@ -139,6 +139,24 @@ function planDescription(p) {
 
 // ---------- data ----------
 
+// Real icons of startup programs, installed programs and cleaner categories,
+// by id; they arrive after the lists so those show at once.
+const icons = { startup: {}, apps: {}, cleaner: {} };
+
+function loadIcons(kind, repaint) {
+  invoke('list_icons', { kind }).then((map) => { icons[kind] = map; repaint(); }, () => {});
+}
+
+/** The item's own icon, or its first letter on a tile when it has none. */
+function itemIcon(kind, id, name) {
+  const url = icons[kind][id];
+  if (url) return `<img class="app-icon" src="${esc(url)}" alt="" draggable="false">`;
+  const letter = [...String(name || '?').trim()][0] || '?';
+  return `<span class="app-icon none">${esc(letter.toUpperCase())}</span>`;
+}
+
+const repaintPage = (page) => () => { if (current === page && !busy) render(); };
+
 async function refreshStatus() {
   status = await invoke('get_status');
   const badge = $('admin-badge');
@@ -159,7 +177,7 @@ async function checkAll() {
   await Promise.all([
     refreshStatus(),
     scanJunk(),
-    invoke('list_startup').then((s) => { startup = s; }),
+    invoke('list_startup').then((s) => { startup = s; loadIcons('startup', repaintPage('startup')); }),
     invoke('list_power_plans').then((p) => { plans = p; }),
   ]);
   checkedAt = new Date();
@@ -302,7 +320,7 @@ function renderCleaner() {
         const tag = c.admin ? `<span class="tag">${esc(t('needsAdmin'))}</span>` : '';
         const count = c.id === 'recycle' ? '' : esc(t('files', { n: num(c.files) }));
         return `<label class="cat${c.locked ? ' locked' : ''}"><input type="checkbox" data-cat="${c.id}"${checked}${disabled}>` +
-          `<div><b>${esc(name)}</b>${tag}<div class="desc">${esc(desc)}</div></div>` +
+          `${itemIcon('cleaner', c.id, name)}<div><b>${esc(name)}</b>${tag}<div class="desc">${esc(desc)}</div></div>` +
           `<span class="count">${count}</span><span class="size">${esc(bytes(c.bytes))}</span></label>`;
       }).join('');
     return rows ? `<div class="card"><h3>${esc(t(`group_${g}`))}</h3>${rows}</div>` : '';
@@ -350,7 +368,7 @@ function renderStartup() {
   const on = startup.filter((s) => s.enabled).length;
   const rows = startup.map((s) => {
     const blocked = s.admin && !status?.admin;
-    return `<div class="item"><div><div class="name">${esc(s.name)}</div><div class="cmd" title="${esc(s.command)}">${esc(s.command)}</div></div>` +
+    return `<div class="item with-icon">${itemIcon('startup', s.id, s.name)}<div><div class="name">${esc(s.name)}</div><div class="cmd" title="${esc(s.command)}">${esc(s.command)}</div></div>` +
       `<span class="tag">${esc(t(`loc_${s.location}`))}</span>` +
       `<button class="switch${s.enabled ? ' on' : ''}" data-toggle="${esc(s.id)}"${blocked ? ` disabled title="${esc(t('needsAdmin'))}"` : ''}></button></div>`;
   }).join('');
@@ -396,7 +414,7 @@ function renderAppList() {
         : a.name.localeCompare(b.name, locale()));
   const total = list.reduce((s, a) => s + a.size, 0);
   const rows = list.map((a) =>
-    `<div class="item"><div><div class="name">${esc(a.name)}</div>` +
+    `<div class="item with-icon">${itemIcon('apps', a.id, a.name)}<div><div class="name">${esc(a.name)}</div>` +
     `<div class="sub">${esc([a.publisher, a.version].filter(Boolean).join(' · '))}</div></div>` +
     `<span class="meta">${esc(a.size ? bytes(a.size) : '')}<br>${esc(a.date)}</span>` +
     `<button class="btn small" data-uninstall="${esc(a.id)}">${esc(t('uninstall'))}</button></div>`).join('');
@@ -488,7 +506,7 @@ function go(page) {
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     pageEl.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.2, .7, .2, 1)' });
   }
-  if (page === 'apps' && !apps) invoke('list_apps').then((a) => { apps = a; renderAppList(); });
+  if (page === 'apps' && !apps) invoke('list_apps').then((a) => { apps = a; renderAppList(); loadIcons('apps', renderAppList); });
 }
 
 // ---------- events ----------
@@ -524,6 +542,7 @@ pageEl.addEventListener('click', async (e) => {
     apps = null;
     renderAppList();
     apps = await invoke('list_apps');
+    loadIcons('apps', renderAppList);
     renderAppList();
   }
   else if (action === 'ultimate') {
@@ -557,5 +576,6 @@ $('lang').addEventListener('change', (e) => {
   renderNav();
   window.__TAURI__.app.getVersion().then((v) => { document.querySelector('.ver').textContent = `v${v}`; });
   invoke('check_update').then((u) => { pendingUpdate = u; renderUpdateBar(); });
+  loadIcons('cleaner', repaintPage('cleaner'));
   await checkAll();
 })();

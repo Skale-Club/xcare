@@ -1,5 +1,9 @@
 # Xcare
 
+> **Xcare is now part of [Xpecs](https://github.com/Skale-Club/xpecs).** Its pages (overview,
+> cleaner, startup, apps, optimize and Force Delete) live on in Xpecs, next to disk space, drivers
+> and hardware. This repository is kept for reference and gets no new features.
+
 Portable PC cleaner and optimizer for Windows, in the spirit of CCleaner and Advanced SystemCare,
 with scan-first cleaning and access to Windows maintenance tools. No app installer is required. 🇧🇷
 [Português](#português) · 🇪🇸 [Español](#español)
@@ -101,6 +105,38 @@ Registry cleaning, forced RAM clearing and automatic network tuning are not impl
 Optimize page changes supported power settings or opens Windows tools; availability and elevation
 requirements depend on the system.
 
+## Use with Claude Code and Codex
+
+`Xcare.exe --mcp` runs Xcare as a local [MCP](https://modelcontextprotocol.io) server, with no
+window, so AI assistants such as Claude Code and Codex can use its engine on this PC. Xcare itself
+sends nothing over the network; what the assistant reads goes to its AI provider, as with anything
+else you share with it. It only reads: cleaning, startup changes, uninstalling and power plans stay
+in the window. Run the assistant as administrator to measure the categories that need it.
+
+Claude Code (available in every project):
+
+```bash
+claude mcp add --scope user xcare -- "C:\Apps\Xcare\Xcare.exe" --mcp
+```
+
+Codex, in `%USERPROFILE%\.codex\config.toml`:
+
+```toml
+[mcp_servers.xcare]
+command = 'C:\Apps\Xcare\Xcare.exe'
+args = ["--mcp"]
+```
+
+Use the path where your `Xcare.exe` is. Tools:
+
+- `app_info`: version, where the exe and `Data` folder are, and the saved settings.
+- `status`: system drive space, uptime, memory load, Recycle Bin size, unhealthy drives,
+  administrator or not.
+- `junk_files`: what each cleaning category would free, in bytes and files; deletes nothing.
+- `startup_items`: programs that start with Windows and whether each is enabled.
+- `installed_apps`: installed programs with publisher, version, size and date.
+- `power_plans`: power plans and the active one.
+
 ## Development
 
 Tauri 2, Rust and plain HTML/CSS/JavaScript. See the [development and release
@@ -137,6 +173,9 @@ antes da limpeza e acesso às ferramentas do Windows.
   administrador**.
 - Não inclui limpeza de registro, esvaziamento forçado de RAM ou ajuste   automático de rede. Não
   promete um aumento específico de desempenho.
+- **Claude Code e Codex**: `Xcare.exe --mcp` roda o Xcare como servidor MCP local, sem janela, para
+  assistentes de IA usarem o diagnóstico do PC (só leitura; limpar e alterar continuam na janela).
+  Veja [Use with Claude Code and Codex](#use-with-claude-code-and-codex).
 
 ## Español
 
@@ -166,6 +205,9 @@ análisis antes de limpiar y acceso a las herramientas de Windows.
   administrador**.
 - No incluye limpieza del registro, vaciado forzado de RAM ni ajuste   automático de red. No promete
   un aumento concreto del rendimiento.
+- **Claude Code y Codex**: `Xcare.exe --mcp` ejecuta Xcare como servidor MCP local, sin ventana,
+  para que asistentes de IA usen el diagnóstico del PC (solo lectura; limpiar y cambiar siguen en la
+  ventana). Consulta [Use with Claude Code and Codex](#use-with-claude-code-and-codex).
 
 ## Skale Club apps
 
@@ -175,11 +217,10 @@ Portuguese and Spanish UI text. Each app has its own executable and portable Dat
 
 | App | Purpose |
 | --- | --- |
+| [Xpecs](https://github.com/Skale-Club/xpecs) | Care for the PC (cleaning, disk space, drivers, startup, apps) and inspect hardware, live sensors and benchmarks |
 | [Xink](https://github.com/Skale-Club/xink) | Draw over the screen during presentations or recordings |
-| [Xpecs](https://github.com/Skale-Club/xpecs) | Inspect hardware, live sensors and benchmark results |
-| [Xcare](https://github.com/Skale-Club/xcare) | Clean selected files, manage startup programs and explicitly remove stubborn files |
 | [Xnote](https://github.com/Skale-Club/xnote) | Transcribe meetings and turn notes into summaries and tasks |
-| [Xpace](https://github.com/Skale-Club/xpace) | Analyze disk usage with a folder tree, treemap, largest files and file-type totals |
+| [Xvert](https://github.com/Skale-Club/xvert) | Convert videos, music and pictures between formats |
 
 Repository access may be required depending on project visibility. Report problems through the
 relevant repository, including app version, Windows version and reproduction steps. Remove
