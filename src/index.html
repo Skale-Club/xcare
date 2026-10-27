@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8">
   <title>Xcare</title>
+  <link rel="stylesheet" href="skale.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="force-delete.css">
 </head>
 <body>
   <aside id="side">
@@ -34,7 +36,7 @@
     <div id="page"></div>
   </main>
   <div id="modal" hidden>
-    <div class="dialog">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text">
       <h2 id="modal-title"></h2>
       <p id="modal-text"></p>
       <div class="dialog-actions">
@@ -45,6 +47,7 @@
   </div>
   <div id="toast"></div>
   <script src="i18n.js"></script>
+  <script src="force-delete.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

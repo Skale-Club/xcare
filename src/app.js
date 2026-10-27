@@ -9,13 +9,14 @@ const { listen } = window.__TAURI__.event;
 
 const svg = (body, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24">${body}</svg>`;
 const ICONS = {
+  forceDelete: '<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/><path d="m18 2 3 3m0-3-3 3"/>',
   overview: '<path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/><path d="M16 3h5v5"/>',
   cleaner: '<path d="m15 4 5 5"/><path d="M13.5 5.5 4 15l5 5 9.5-9.5"/><path d="M7 18l-3 3"/>',
   startup: '<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/>',
   apps: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>',
   optimize: '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
   ok: '<path d="M5 12.5 10 17l9-10"/>',
-  warn: '<path d="M12 8v5M12 16.5v.01"/>',
+  warn: '<path d="M12 5.5v8.5M12 18.5v.01"/>',
   bad: '<path d="M7 7l10 10M17 7 7 17"/>',
   repair: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
   restore: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
@@ -28,7 +29,7 @@ const ICONS = {
   cleanmgr: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/>',
 };
 
-const NAV = ['overview', 'cleaner', 'startup', 'apps', 'optimize'];
+const NAV = ['overview', 'cleaner', 'startup', 'apps', 'optimize', 'forceDelete'];
 const TOOLS = ['repair', 'restore', 'defrag', 'visual', 'gamemode', 'storage', 'update', 'taskmgr', 'cleanmgr'];
 const ADMIN_TOOLS = ['repair', 'restore'];
 const POWER_SAVER = 'a1841308-3541-4fab-bc81-f71556f20b4a';
@@ -85,12 +86,24 @@ function confirmBox(title, text, okLabel, danger) {
     $('modal-ok').textContent = okLabel;
     $('modal-ok').className = `btn ${danger ? 'danger' : 'primary'}`;
     $('modal-cancel').textContent = t('cancel');
+    let settled = false;
+    const previousFocus = document.activeElement;
     const done = (answer) => {
+      if (settled) return;
+      settled = true;
       modal.hidden = true;
       document.removeEventListener('keydown', onKey);
+      if (previousFocus?.isConnected) previousFocus.focus();
       resolve(answer);
     };
-    const onKey = (e) => { if (e.key === 'Escape') done(false); };
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); done(false); }
+      if (e.key === 'Tab') {
+        const first = $('modal-cancel'), last = $('modal-ok');
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
     $('modal-ok').onclick = () => done(true);
     $('modal-cancel').onclick = () => done(false);
     document.addEventListener('keydown', onKey);
@@ -265,7 +278,7 @@ function renderOverview() {
   pageEl.innerHTML =
     `<div class="overview"><div class="card score-card">` +
     `<div class="ring"><svg viewBox="0 0 180 180"><circle class="track" cx="90" cy="90" r="78"/>` +
-    `<circle class="value" cx="90" cy="90" r="78" stroke="${color}" stroke-dasharray="${circumference}" ` +
+    `<circle class="value" cx="90" cy="90" r="78" stroke="${color}" style="color:${color}" stroke-dasharray="${circumference}" ` +
     `stroke-dashoffset="${circumference * (1 - score / 100)}"/></svg><div class="num">${score}</div></div>` +
     `<div class="score-label" style="color:${color}">${esc(label)}</div>` +
     `<div class="score-sub">${esc(t('lastScan', { time: checkedAt.toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) }))}</div>` +
@@ -362,7 +375,7 @@ async function toggleStartup(id) {
 
 function renderApps() {
   pageEl.innerHTML =
-    `<div class="toolbar"><input id="app-search" class="search" placeholder="${esc(t('search'))}" value="${esc(appsQuery)}">` +
+    `<div class="toolbar"><input id="app-search" class="search" type="search" placeholder="${esc(t('search'))}" value="${esc(appsQuery)}">` +
     `<select id="app-sort" class="sel">` +
     ['size', 'name', 'date'].map((s) => `<option value="${s}"${s === appsSort ? ' selected' : ''}>${esc(t(`sort${s[0].toUpperCase()}${s.slice(1)}`))}</option>`).join('') +
     `</select><button class="btn" data-action="refresh-apps">${esc(t('refresh'))}</button></div><div id="app-list"></div>`;
@@ -417,6 +430,7 @@ function renderOptimize() {
     (hasUltimate ? '' : `<button class="btn small" data-action="ultimate">${esc(t('addUltimate'))}</button>`) +
     `</div>${planRows}</div>` +
     `<div class="card" style="background:transparent;border:0;padding:0"><h3>${esc(t('tools'))}</h3><div class="tools">${tools}</div></div>` +
+    `<div class="tool" style="margin-bottom:16px"><div class="head"><span class="ico">${svg(ICONS.forceDelete)}</span>${esc(t('forceDelete'))}</div><p>${esc(t('fdIntro'))}</p><button class="btn small" data-action="go:forceDelete">${esc(t('open'))}</button></div>` +
     `<div class="card"><h3>${esc(t('honestTitle'))}</h3><p class="note" style="margin:0">${esc(t('honest'))}</p></div>`;
 }
 
@@ -463,7 +477,7 @@ function renderNav() {
 
 function render() {
   $('title').textContent = t(current);
-  ({ overview: renderOverview, cleaner: renderCleaner, startup: renderStartup, apps: renderApps, optimize: renderOptimize })[current]();
+  ({ overview: renderOverview, cleaner: renderCleaner, startup: renderStartup, apps: renderApps, optimize: renderOptimize, forceDelete: () => window.XcareForceDelete.render(pageEl) })[current]();
 }
 
 function go(page) {
@@ -471,6 +485,9 @@ function go(page) {
   renderNav();
   pageEl.scrollTop = 0;
   render();
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    pageEl.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.2, .7, .2, 1)' });
+  }
   if (page === 'apps' && !apps) invoke('list_apps').then((a) => { apps = a; renderAppList(); });
 }
 
@@ -492,8 +509,9 @@ pageEl.addEventListener('change', (e) => {
 });
 
 pageEl.addEventListener('click', async (e) => {
-  const el = e.target.closest('[data-action], [data-toggle], [data-uninstall], [data-tool]');
+  const el = e.target.closest('[data-action], [data-toggle], [data-uninstall], [data-tool], [data-fd]');
   if (!el || el.disabled) return;
+  if (el.dataset.fd) return window.XcareForceDelete.act(el.dataset.fd, Number(el.dataset.index));
   if (el.dataset.toggle) return toggleStartup(el.dataset.toggle);
   if (el.dataset.uninstall) return uninstall(el.dataset.uninstall);
   if (el.dataset.tool) return attempt(() => invoke('run_tool', { tool: el.dataset.tool }));

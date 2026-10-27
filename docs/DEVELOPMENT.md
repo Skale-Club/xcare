@@ -26,6 +26,7 @@ the native commands.
 To check Rust code, run the included tests and build the executable:
 
 ~~~powershell
+node --test scripts/force-delete.test.cjs
 cargo check --manifest-path src-tauri/Cargo.toml --locked
 cargo test --manifest-path src-tauri/Cargo.toml --release --locked
 npm run build
@@ -63,6 +64,9 @@ Keep documentation aligned with observed behavior. Update the README's English i
 Portuguese/Spanish summaries together. A feature listed in the README should have an implemented
 workflow; a release link should not imply that a binary exists before publication succeeds.
 
+See [Force Delete implementation and validation](FORCE_DELETE.md) for its path/process boundaries,
+fixture tests, delayed-registration semantics and remaining manual acceptance checks.
+
 ## Publish a release
 
 The **Release** GitHub Actions workflow runs when a `v*` tag is pushed. A normal branch push does
@@ -75,9 +79,8 @@ the key outside Git and back it up securely. The current workflow supplies an em
 password; using a password-protected key requires updating the workflow's secret configuration
 first.
 
-**Readiness checked October 26, 2026:** no releases or repository-level Actions secrets were listed
-for this app. Confirm that a matching signing key is available through a repository or permitted
-organization secret before pushing a release tag.
+Before tagging a release, confirm that the repository has a signing key available through a
+repository or permitted organization secret. A normal source push does not publish a binary.
 
 For a reviewed release:
 
@@ -114,3 +117,12 @@ under `App/AppInfo`; the app only refreshes the version when that metadata alrea
 the build nor the release workflow creates a complete PortableApps package.
 
 Close the app before moving or backing up its folder.
+
+## Verify the Windows executable icon
+
+After a normal `npm run build`, the postbuild step checks the icon resources
+embedded in the resulting executable against `src-tauri/icons/icon.ico`. You can
+repeat the data-only check with `npm run verify:icon`. This uses Node.js, does not
+launch the app and fails if any icon frame is stale or missing. Cargo tracks icon
+inputs through `build.rs`, so updating artwork rebuilds the Windows resource library.
+See [branding](BRANDING.md) for the icon source and regeneration instructions.

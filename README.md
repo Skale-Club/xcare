@@ -8,9 +8,9 @@ Made by **[Skale Club](https://skale.club)**.
 
 ## Availability
 
-**Status checked October 26, 2026:** version 0.1.0 is in source control; no GitHub Release or
-downloadable executable has been published. Use the [build instructions](docs/DEVELOPMENT.md) until
-a release is available. Future binaries belong in
+**Status checked October 27, 2026:** source version 0.1.1. No GitHub Release or
+publicly downloadable executable has been published. Build from source using the
+[development guide](docs/DEVELOPMENT.md). Future release binaries belong in
 [Releases](https://github.com/Skale-Club/xcare/releases).
 
 The app can offer signed updates when a newer release contains both an executable and its signature.
@@ -36,6 +36,7 @@ permission).
 | Cleaner | Scans and shows the size of each category, then deletes only what you ticked, after a confirmation. |
 | Startup | Turns programs that start with Windows on and off. |
 | Apps | Programs found in supported uninstall registry entries, with size/date when provided; opens the program's own uninstaller. |
+| Force Delete | Reviews explicitly selected local files/folders, identifies blocking apps, deletes reviewed items, optionally terminates eligible apps or schedules removal at restart. |
 | Optimize | Power plan (including adding Ultimate Performance) and shortcuts to Windows' own tools: repair system files (DISM + SFC), restore point, optimize drives, visual effects, Game Mode, Storage Sense, Windows Update, Task Manager, Disk Cleanup. |
 
 ## Cleaning behavior
@@ -53,6 +54,32 @@ permission).
   items added after the scan; it is not a   per-file scan snapshot. Deletion is permanent.
 - Clearing browser caches can remove offline cached website resources. The next   visit may need to
   download them again.
+
+## Force Delete
+
+Open **Force Delete** in the sidebar or from **Optimize**. Choose files, choose a folder, drop
+local files/folders into the page, or paste an absolute local path. Select **Review selection**
+before choosing an action. The tool supports up to 100 selections and 5,000 total items per review.
+
+- **Delete now** permanently removes reviewed items, bypassing the Recycle Bin. Read-only attributes
+  can be cleared; ownership and access-control permissions are not rewritten.
+- **Terminate apps & delete** explicitly confirms the blocking apps reported by Windows Restart
+  Manager. Eligible apps in the current user session can be terminated; unsaved work may be lost.
+  Windows processes, services, Explorer, critical processes and Xcare itself are protected. Apps
+  are not automatically reopened. Restart Manager does not detect every possible lock.
+- **Delete on restart** requires administrator access and registers paths with Windows. It does
+  not restart the PC. Registration persists after Xcare closes and does not guarantee removal.
+  Windows acts on paths at restart, so a replacement at the same path may also be affected.
+  Folder entries are registered after their children and removed only if empty at restart.
+
+Reviews expire after 10 minutes and are consumed by an execution attempt. Immediate deletion checks
+file identity and changes since review; new files are not added automatically. Partial results show
+deleted, scheduled and failed counts separately. Refresh the review before retrying.
+
+The tool refuses drive roots, network/device paths, symbolic links/junctions, Windows and installed
+program trees, and main profile containers. It is intended for stubborn user files and disposable
+folders. It does not bypass every Windows restriction. See [implementation and validation
+notes](docs/FORCE_DELETE.md).
 
 ## What the health score means
 
@@ -84,7 +111,7 @@ A push to `main` alone does not publish an executable.
 
 ## Português
 
-**Disponibilidade:** em 26/10/2026, ainda não há release nem executável publicado. Consulte
+**Disponibilidade:** em 27/10/2026, ainda não há release nem executável publicado. Consulte
 [Releases](https://github.com/Skale-Club/xcare/releases) ou as [instruções de
 compilação](docs/DEVELOPMENT.md). As atualizações dependem de uma release assinada e da ação do
 usuário.
@@ -103,6 +130,7 @@ antes da limpeza e acesso às ferramentas do Windows.
   do instalador. Não é um inventário de todos os apps portáteis ou da Microsoft Store.
 - **Lixeira:** a opção é desmarcada por padrão e esvazia a lixeira no momento da execução, inclusive
   itens adicionados após a análise.
+- **Exclusão forçada:** revisão de arquivos/pastas locais, identificação de bloqueios, exclusão permanente, encerramento confirmado de programas permitidos e agendamento ao reiniciar (administrador).
 - **Otimizar:** plano de energia e atalhos para as ferramentas do Windows   (reparar arquivos do
   sistema, ponto de restauração, otimizar unidades e mais).
 - Para limpar pastas do Windows e mexer em programas de todos os usuários, use   **Reabrir como
@@ -112,7 +140,7 @@ antes da limpeza e acesso às ferramentas do Windows.
 
 ## Español
 
-**Disponibilidad:** al 26/10/2026, aún no hay release ni ejecutable publicado. Consulte
+**Disponibilidad:** al 27/10/2026, aún no hay release ni ejecutable publicado. Consulte
 [Releases](https://github.com/Skale-Club/xcare/releases) o las [instrucciones de
 compilación](docs/DEVELOPMENT.md). Las actualizaciones requieren una release firmada y la acción del
 usuario.
@@ -132,6 +160,7 @@ análisis antes de limpiar y acceso a las herramientas de Windows.
   dependen del instalador. No es un inventario de todas las apps portátiles o de Microsoft Store.
 - **Papelera:** desmarcada por defecto; se vacía en el momento de ejecutar, incluidos elementos
   añadidos después del análisis.
+- **Eliminación forzada:** revisión de archivos/carpetas locales, detección de bloqueos, eliminación permanente, terminación confirmada de programas permitidos y programación al reiniciar (administrador).
 - **Optimizar:** plan de energía y accesos a las herramientas de Windows.
 - Para limpiar carpetas de Windows y cambiar programas de todos los usuarios,   usa **Reabrir como
   administrador**.
@@ -140,20 +169,22 @@ análisis antes de limpiar y acceso a las herramientas de Windows.
 
 ## Skale Club apps
 
-These Windows apps belong to the [Skale-Club organization](https://github.com/Skale-Club). They
-share a dark navy interface, blue accents and English, Portuguese and Spanish UI text. Each app has
-its own executable and data folder.
+These Windows apps belong to the [Skale-Club organization](https://github.com/Skale-Club).
+They share navy interfaces, blue accents, transparent product symbols, and English,
+Portuguese and Spanish UI text. Each app has its own executable and portable Data folder.
 
 | App | Purpose |
-|---|---|
+| --- | --- |
 | [Xink](https://github.com/Skale-Club/xink) | Draw over the screen during presentations or recordings |
 | [Xpecs](https://github.com/Skale-Club/xpecs) | Inspect hardware, live sensors and benchmark results |
-| [Xcare](https://github.com/Skale-Club/xcare) | Review PC maintenance, clean selected files and manage startup programs |
-| [Xnote](https://github.com/Skale-Club/xnote) | Transcribe meeting audio and turn notes into summaries and tasks |
+| [Xcare](https://github.com/Skale-Club/xcare) | Clean selected files, manage startup programs and explicitly remove stubborn files |
+| [Xnote](https://github.com/Skale-Club/xnote) | Transcribe meetings and turn notes into summaries and tasks |
+| [Xpace](https://github.com/Skale-Club/xpace) | Analyze disk usage with a folder tree, treemap, largest files and file-type totals |
 
-Xnote currently requires repository access. Report problems through the relevant repository's Issues
-tab, including the app version, Windows version and steps to reproduce. Remove personal information
-from reports and transcripts before sharing.
+Repository access may be required depending on project visibility. Report problems through the
+relevant repository, including app version, Windows version and reproduction steps. Remove
+personal information from reports and transcripts before sharing.
+
 
 ---
 

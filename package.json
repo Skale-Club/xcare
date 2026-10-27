@@ -1,11 +1,14 @@
 {
   "name": "xcare",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build --no-bundle",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test:ui": "node --test scripts/force-delete.test.cjs",
+    "verify:icon": "node scripts/verify-windows-icon.cjs",
+    "postbuild": "npm run verify:icon"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

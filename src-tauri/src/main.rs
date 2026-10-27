@@ -5,6 +5,7 @@
 
 mod apps;
 mod cleaner;
+mod force_delete;
 mod portable;
 mod power;
 mod startup;
@@ -31,6 +32,7 @@ impl Default for Settings {
 }
 
 struct AppState {
+    force_delete: force_delete::Service,
     settings: Mutex<Settings>,
     /// Files found by the last scan, per category; cleaning deletes only these.
     scanned: Mutex<HashMap<String, cleaner::Files>>,
@@ -177,6 +179,25 @@ fn add_ultimate_plan() -> Result<(), String> {
     power::add_ultimate()
 }
 
+#[tauri::command]
+async fn pick_force_delete(window: tauri::WebviewWindow, folder: bool) -> Result<Vec<String>, String> {
+    let owner = window.hwnd().map_err(|e| e.to_string())?.0 as isize;
+    tauri::async_runtime::spawn_blocking(move || force_delete::pick(folder, owner))
+        .await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn prepare_force_delete(app: AppHandle, paths: Vec<String>) -> Result<force_delete::Preview, String> {
+    tauri::async_runtime::spawn_blocking(move || app.state::<AppState>().force_delete.prepare(paths))
+        .await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn execute_force_delete(app: AppHandle, token: String, mode: String) -> Result<force_delete::Outcome, String> {
+    tauri::async_runtime::spawn_blocking(move || app.state::<AppState>().force_delete.execute(&token, &mode))
+        .await.map_err(|e| e.to_string())?
+}
+
 /// Windows' own tools. Only these ids are accepted.
 #[tauri::command]
 fn run_tool(tool: String) -> Result<(), String> {
@@ -287,6 +308,7 @@ fn main() {
     portable::sync_appinfo();
     tauri::Builder::default()
         .manage(AppState {
+            force_delete: force_delete::Service::default(),
             settings: Mutex::new(load_settings()),
             scanned: Mutex::new(HashMap::new()),
             unhealthy_disks: Mutex::new(None),
@@ -306,6 +328,9 @@ fn main() {
             set_power_plan,
             add_ultimate_plan,
             run_tool,
+            pick_force_delete,
+            prepare_force_delete,
+            execute_force_delete,
             restart_as_admin,
             open_site,
             check_update,
